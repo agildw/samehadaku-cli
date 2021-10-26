@@ -1,6 +1,6 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
-const { get, first } = require('cheerio/lib/api/traversing');
+const { get, first, children } = require('cheerio/lib/api/traversing');
 const inquirer = require('inquirer')
 const { performance } = require('perf_hooks');
 
@@ -142,7 +142,53 @@ async function getUrl() {
                     inquirer
                         .prompt(question)
                         .then(answers => {
-                            console.log(answers)
+                            // console.log(answers)
+                            // console.log(answers.chooseEpisode)
+                            const indexChoose = answers.chooseEpisode
+                            console.log(`Selected episode ${resultEpisode[indexChoose].title}`)
+                            let secondStart = performance.now();
+                            axios.get(resultEpisode[indexChoose].toUrl)
+                                .then(response => {
+                                    const $ = cheerio.load(response.data);
+
+                                    //get download link
+                                    $('.pencenter').each((i, item) => {
+                                        // let formatVid = $('p b').text();
+                                        $('#downloadb').each((i, item) => {
+                                            let resolutionCounts = $('ul li', item).length
+                                            // console.log(i)
+                                            console.log($('b', item).html());
+
+                                            for (x = 1; x <= resolutionCounts; x++) {
+                                                console.log($(`ul > li:nth-child(${x})`, item).html())
+                                            }
+
+                                            // console.log($('ul > li:nth-child(2)', item).html())
+                                        })
+
+                                        // console.log($('#downloadb b', item).text());
+                                        // console.log($('strong', item).html())
+                                        // console.log($(`#downloadb li:nth-child(${i})`, item).html())
+                                        // $(`li:nth-child(${i + 1}`, item).each((i, item) => {
+                                        //     console.log($(item).html())
+                                        // })
+                                    })
+                                    let secondEnd = performance.now();
+                                    console.log(`loaded in ${(Math.floor(secondEnd - secondStart) / 1000)} Sec`)
+                                    // #downloadb
+                                })
+                                .catch(error => {
+                                    throw error
+                                })
+
+                        })
+                        .catch(error => {
+                            if (error.isTtyError) {
+                                console.log(error)
+                                // throw error
+                            } else {
+                                return
+                            }
                         })
                 }
             })
