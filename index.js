@@ -60,7 +60,6 @@ async function getUrl() {
                 }
             ])
             .then((answers) => {
-                // console.log(resultEpisode[1].title)
                 if (answers.choiceType === 'Latest episode') {
                     let question = [{
                         type: 'list',
@@ -77,7 +76,6 @@ async function getUrl() {
                             axios.get(resultEpisode[indexChoose].toUrl)
                                 .then(response => {
                                     const $ = cheerio.load(response.data);
-                                    // let downloadEpisode = [];
 
                                     //get download link
                                     $('.pencenter').each((i, item) => {
@@ -87,72 +85,21 @@ async function getUrl() {
 
 
                                             for (x = 1; x <= resolutionCounts; x++) {
-                                                // console.log(x)
                                                 let resolutions = $(`ul > li:nth-child(${x}) > strong`, item).text()
-
-                                                // console.log($(item).html())
-                                                // console.log($(`ul > li:nth-child(${x}) > span:nth-child(${x + 1})`, item).html())
                                                 let linkCount = $(`ul li:nth-child(${x}) > span`, item).length;
-                                                // console.log(linkCount)
-
+                                                //mirror title link
                                                 let TitleLink = $(`ul > li:nth-child(${x}) > span:nth-child(${x + 1}) > a `, item).text();
-                                                // console.log(TitleLink)
-                                                let savedDownloads = []
-                                                // let linkDownloads;
-
-
                                                 console.log(`\n${chalk.green(formatVid)} - ${chalk.green(resolutions)}`)
 
                                                 for (y = 1; y <= linkCount; y++) {
                                                     let linkDownloads = $(`ul > li:nth-child(${x}) > span:nth-child(${y + 1}) > a `, item).attr('href')
-                                                    // console.log(y)
                                                     console.log(linkDownloads)
-                                                    // #downloadb > ul > li:nth-child(1) > span:nth-child(3) > a
                                                 }
-
-                                                // console.log(linkDownloads)
-                                                // savedDownloads.push(linkDownloads)
-
-                                                // console.log(formatVid)
-                                                // console.log(linkDownloads)
-                                                // console.log(savedDownloads)
-
-
-
-
-                                                // downloadEpisode.push({
-                                                //     format: formatVid,
-                                                //     resolution: resolutions,
-                                                //     downloadLink: [{
-                                                //         title: TitleLink,
-                                                //         links: linkDownloads
-                                                //     }]
-                                                // });
                                             }
                                         })
                                     })
-                                    // console.log(downloadEpisode.downloadLink)
-                                    // console.log(downloadEpisode.map((mirrorList, index) => ({
-                                    //     name: `[${index + 1}] ${mirrorList.format} - ${mirrorList.resolution}\n${mirrorList.downloadLink.title}\n${mirrorList.downloadLink.links}\n`, value: index
-                                    // })))
-                                    // console.log(downloadEpisode)
                                     let secondEnd = performance.now();
                                     console.log(chalk.yellowBright(`loaded in ${(Math.floor(secondEnd - secondStart) / 1000)} Second`))
-
-                                    // let question = {
-                                    //     type: 'list',
-                                    //     name: 'downloadLinks',
-                                    //     message: 'Select resolution and format below',
-                                    //     choices: downloadEpisode.map((mirrorList, index) => ({
-                                    //         name: `[${index + 1}] ${mirrorList.format} - ${mirrorList.resolution}\n${mirrorList.downloadLink.title}\n${mirrorList.downloadLink.links}\n`, value: index
-                                    //     }))
-                                    // }
-                                    // inquirer
-                                    //     .prompt(question)
-                                    //     .then(answers => {
-                                    //         console.log(answers)
-                                    //     })
-
 
                                 })
                                 .catch(error => {
