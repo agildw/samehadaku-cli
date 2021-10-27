@@ -1,7 +1,8 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const { get, first, children } = require('cheerio/lib/api/traversing');
-const inquirer = require('inquirer')
+const inquirer = require('inquirer');
+const { format } = require('path');
 const { performance } = require('perf_hooks');
 
 
@@ -41,7 +42,7 @@ async function getUrl() {
                 throw error
             })
         let firstEnd = performance.now();
-        console.log(resultEpisode.length)
+        // console.log(resultEpisode.length)
         // resultEpisode.forEach((number) => {
         //     console.log(number.title)
         //     console.log(number.date)
@@ -53,7 +54,7 @@ async function getUrl() {
                 {
                     type: 'list',
                     name: 'choiceType',
-                    message: `apa sudah makan ?`,
+                    message: `Please select option below ?`,
                     choices: [
                         'Latest episode',
                         'Latest batch'
@@ -142,40 +143,66 @@ async function getUrl() {
                     inquirer
                         .prompt(question)
                         .then(answers => {
-                            // console.log(answers)
-                            // console.log(answers.chooseEpisode)
                             const indexChoose = answers.chooseEpisode
                             console.log(`Selected episode ${resultEpisode[indexChoose].title}`)
                             let secondStart = performance.now();
                             axios.get(resultEpisode[indexChoose].toUrl)
                                 .then(response => {
                                     const $ = cheerio.load(response.data);
-
+                                    let downloadEpisode = [];
+                                    let titleAndDownload = []
                                     //get download link
                                     $('.pencenter').each((i, item) => {
-                                        // let formatVid = $('p b').text();
                                         $('#downloadb').each((i, item) => {
                                             let resolutionCounts = $('ul li', item).length
-                                            // console.log(i)
-                                            console.log($('b', item).html());
+                                            let formatVid = $('b', item).text();
+
 
                                             for (x = 1; x <= resolutionCounts; x++) {
-                                                console.log($(`ul > li:nth-child(${x})`, item).html())
+                                                // console.log(x)
+                                                let resolutions = $(`ul > li:nth-child(${x}) > strong`, item).text()
+
+                                                // console.log($(item).html())
+                                                // console.log($(`ul > li:nth-child(${x}) > span:nth-child(${x + 1})`, item).html())
+                                                // let linkCount = $(`ul li:nth-child(${x}) > span`, item).length;
+                                                // console.log(linkCount)
+
+                                                let TitleLink = $(`ul > li:nth-child(${x}) > span:nth-child(${x + 1}) > a `, item).text();
+                                                // console.log(TitleLink)
+                                                let savedDownloads = []
+                                                // let linkDownloads;
+
+                                                if ($(`ul > li:nth-child(${x}) > span:nth-child(${x + 1}) > a `, item).attr('href') !== undefined) {
+                                                    let linkDownloads = $(`ul > li:nth-child(${x}) > span:nth-child(${x + 1}) > a `, item).attr('href')
+                                                    savedDownloads.push(linkDownloads)
+                                                    // console.log(linkDownloads)
+                                                }
+                                                // console.log(formatVid)
+                                                // console.log(linkDownloads)
+
+                                                // console.log(savedDownloads)
+
+                                                downloadEpisode.push({
+                                                    format: formatVid,
+                                                    resolution: resolutions,
+                                                    downloadLink: {
+                                                        title: TitleLink,
+                                                        links: savedDownloads
+                                                    }
+
+                                                });
+
+
                                             }
 
-                                            // console.log($('ul > li:nth-child(2)', item).html())
+
                                         })
 
-                                        // console.log($('#downloadb b', item).text());
-                                        // console.log($('strong', item).html())
-                                        // console.log($(`#downloadb li:nth-child(${i})`, item).html())
-                                        // $(`li:nth-child(${i + 1}`, item).each((i, item) => {
-                                        //     console.log($(item).html())
-                                        // })
                                     })
+                                    console.log(downloadEpisode)
                                     let secondEnd = performance.now();
                                     console.log(`loaded in ${(Math.floor(secondEnd - secondStart) / 1000)} Sec`)
-                                    // #downloadb
+
                                 })
                                 .catch(error => {
                                     throw error
