@@ -1,9 +1,12 @@
 const axios = require('axios');
 const cheerio = require('cheerio');
 const { get, first, children } = require('cheerio/lib/api/traversing');
+const { link } = require('fs');
 const inquirer = require('inquirer');
 const { format } = require('path');
 const { performance } = require('perf_hooks');
+const chalk = require('chalk');
+const fs = require('fs')
 
 
 async function getUrl() {
@@ -42,14 +45,9 @@ async function getUrl() {
                 throw error
             })
         let firstEnd = performance.now();
-        // console.log(resultEpisode.length)
-        // resultEpisode.forEach((number) => {
-        //     console.log(number.title)
-        //     console.log(number.date)
 
-        // })
-        console.log()
-        console.log(`loaded in ${(Math.floor(firstEnd - firstStart) / 1000)} Sec`)
+
+        console.log(chalk.yellowBright(`loaded in ${(Math.floor(firstEnd - firstStart) / 1000)} Second`))
         inquirer
             .prompt([
                 {
@@ -58,7 +56,6 @@ async function getUrl() {
                     message: `Please select option below ?`,
                     choices: [
                         'Latest episode',
-                        'Latest batch'
                     ]
                 }
             ])
@@ -75,13 +72,13 @@ async function getUrl() {
                         .prompt(question)
                         .then(answers => {
                             const indexChoose = answers.chooseEpisode
-                            console.log(`Selected episode ${resultEpisode[indexChoose].title}`)
+                            console.log(`Selected episode ${chalk.bold.cyan(resultEpisode[indexChoose].title)}`)
                             let secondStart = performance.now();
                             axios.get(resultEpisode[indexChoose].toUrl)
                                 .then(response => {
                                     const $ = cheerio.load(response.data);
-                                    let downloadEpisode = [];
-                                    let titleAndDownload = []
+                                    // let downloadEpisode = [];
+
                                     //get download link
                                     $('.pencenter').each((i, item) => {
                                         $('#downloadb').each((i, item) => {
@@ -95,7 +92,7 @@ async function getUrl() {
 
                                                 // console.log($(item).html())
                                                 // console.log($(`ul > li:nth-child(${x}) > span:nth-child(${x + 1})`, item).html())
-                                                // let linkCount = $(`ul li:nth-child(${x}) > span`, item).length;
+                                                let linkCount = $(`ul li:nth-child(${x}) > span`, item).length;
                                                 // console.log(linkCount)
 
                                                 let TitleLink = $(`ul > li:nth-child(${x}) > span:nth-child(${x + 1}) > a `, item).text();
@@ -103,42 +100,64 @@ async function getUrl() {
                                                 let savedDownloads = []
                                                 // let linkDownloads;
 
-                                                if ($(`ul > li:nth-child(${x}) > span:nth-child(${x + 1}) > a `, item).attr('href') !== undefined) {
-                                                    let linkDownloads = $(`ul > li:nth-child(${x}) > span:nth-child(${x + 1}) > a `, item).attr('href')
-                                                    savedDownloads.push(linkDownloads)
-                                                    // console.log(linkDownloads)
+
+                                                console.log(`\n${chalk.green(formatVid)} - ${chalk.green(resolutions)}`)
+
+                                                for (y = 1; y <= linkCount; y++) {
+                                                    let linkDownloads = $(`ul > li:nth-child(${x}) > span:nth-child(${y + 1}) > a `, item).attr('href')
+                                                    // console.log(y)
+                                                    console.log(linkDownloads)
+                                                    // #downloadb > ul > li:nth-child(1) > span:nth-child(3) > a
                                                 }
+
+                                                // console.log(linkDownloads)
+                                                // savedDownloads.push(linkDownloads)
+
                                                 // console.log(formatVid)
                                                 // console.log(linkDownloads)
-
                                                 // console.log(savedDownloads)
 
-                                                downloadEpisode.push({
-                                                    format: formatVid,
-                                                    resolution: resolutions,
-                                                    downloadLink: {
-                                                        title: TitleLink,
-                                                        links: savedDownloads
-                                                    }
-
-                                                });
 
 
+
+                                                // downloadEpisode.push({
+                                                //     format: formatVid,
+                                                //     resolution: resolutions,
+                                                //     downloadLink: [{
+                                                //         title: TitleLink,
+                                                //         links: linkDownloads
+                                                //     }]
+                                                // });
                                             }
-
-
                                         })
-
                                     })
-                                    console.log(downloadEpisode)
+                                    // console.log(downloadEpisode.downloadLink)
+                                    // console.log(downloadEpisode.map((mirrorList, index) => ({
+                                    //     name: `[${index + 1}] ${mirrorList.format} - ${mirrorList.resolution}\n${mirrorList.downloadLink.title}\n${mirrorList.downloadLink.links}\n`, value: index
+                                    // })))
+                                    // console.log(downloadEpisode)
                                     let secondEnd = performance.now();
-                                    console.log(`loaded in ${(Math.floor(secondEnd - secondStart) / 1000)} Sec`)
+                                    console.log(chalk.yellowBright(`loaded in ${(Math.floor(secondEnd - secondStart) / 1000)} Second`))
+
+                                    // let question = {
+                                    //     type: 'list',
+                                    //     name: 'downloadLinks',
+                                    //     message: 'Select resolution and format below',
+                                    //     choices: downloadEpisode.map((mirrorList, index) => ({
+                                    //         name: `[${index + 1}] ${mirrorList.format} - ${mirrorList.resolution}\n${mirrorList.downloadLink.title}\n${mirrorList.downloadLink.links}\n`, value: index
+                                    //     }))
+                                    // }
+                                    // inquirer
+                                    //     .prompt(question)
+                                    //     .then(answers => {
+                                    //         console.log(answers)
+                                    //     })
+
 
                                 })
                                 .catch(error => {
                                     throw error
                                 })
-
                         })
                         .catch(error => {
                             if (error.isTtyError) {
